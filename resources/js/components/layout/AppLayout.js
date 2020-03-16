@@ -61,7 +61,6 @@ export default function AppLayout(props) {
             </Scroll>
             <Toolbar />
                 <Box m={1}>
-                <TabMenu/>
                 <MenuLeft state={state} setState={setState}/>
                 {props.children}
                 </Box>

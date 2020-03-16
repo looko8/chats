@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends BaseController
 {
@@ -22,8 +23,6 @@ class UserController extends BaseController
 
         $user = $this->create($request->all());
 
-        $this->guard()->login($user);
-
         return $this->sendResponse($user, 'registration successful');
     }
 
@@ -33,7 +32,7 @@ class UserController extends BaseController
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->only('phone', 'password');
 
         if (Auth::attempt($credentials)) {
             // Authentication passed...
@@ -41,12 +40,40 @@ class UserController extends BaseController
         }
     }
 
+    public function token(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required',
+            'password' => 'required',
+            'device_name' => 'required'
+        ]);
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        $token = $user->createToken($request->device_name)->plainTextToken;
+
+        $response = [
+            'user' => $user,
+            'token' => $token,
+        ];
+
+        return response($response, 201);
+    }
+
     /**
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::logout();
+        auth()->guard('web')->logout();
+        $request->user()->tokens()->delete();
         return response()->json(['message' => 'Logged Out'], 200);
     }
 
@@ -58,7 +85,10 @@ class UserController extends BaseController
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'second_name' => ['required', 'string', 'max:255'],
+            'patronymic' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'regex:/^\+[0-9-]{9,20}$/'],
+            'email' => ['string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:4', 'confirmed'],
         ]);
     }
@@ -71,6 +101,9 @@ class UserController extends BaseController
     {
         return User::create([
             'name' => $data['name'],
+            'second_name' => $data['second_name'],
+            'patronymic' => $data['patronymic'],
+            'phone' => $data['phone'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);

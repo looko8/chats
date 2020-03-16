@@ -1,71 +1,128 @@
 import React from 'react';
 import { Link, withRouter } from 'react-router-dom';
+import {
+    Container,
+    TextField,
+    InputLabel,
+    FilledInput,
+    InputAdornment,
+    IconButton,
+    FormControl,
+    FormGroup,
+    Button
+} from "@material-ui/core";
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import {makeStyles} from "@material-ui/core/styles";
+import clsx from "clsx";
+import AuthLayout from "../../layout/AuthLayout";
+import axios from "axios";
+
+const useStyles = makeStyles(theme => ({
+    root: {
+        display: 'flex',
+        flexWrap: 'wrap',
+    },
+    margin: {
+        margin: theme.spacing(1),
+    },
+    withoutLabel: {
+        marginTop: theme.spacing(3),
+    }
+}));
 
 const Register = () => {
+    const classes = useStyles();
+    const [values, setValues] = React.useState({
+        name: '',
+        second_name: '',
+        patronymic: '',
+        phone: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        showPassword: false,
+    });
+
+    const handleChange = prop => event => {
+        setValues({ ...values, [prop]: event.target.value });
+    };
+
+    const handleClickShowPassword = () => {
+        setValues({ ...values, showPassword: !values.showPassword });
+    };
+
+    const handleMouseDownPassword = event => {
+        event.preventDefault();
+    };
+
+    const handleRegister = () => {
+        axios.post('api/register', {
+            name: values.name,
+            second_name: values.second_name,
+            patronymic: values.patronymic,
+            phone: values.phone,
+            email: values.email,
+            password: values.password,
+            password_confirmation: values.password_confirmation
+        }).then(response => console.log(response));
+    };
+
     return (
-        <div className="flex justify-center items-center w-full flex-col py-4 min-h-screen bg-gray-200">
-
-            <div className="p-8 flex flex-col items-center">
-
-                <div className="text-2xl leading-loose">
-                    Start your free trial
-                </div>
-                <div className="text-gray-800">
-                    <span className="text-gray-700">Or</span> <Link to="/login" className="underline">sign in to your account</Link>
-                </div>
-            </div>
-
-            <div className="bg-white border rounded border-grey-light w-3/4 sm:w-1/2 lg:w-2/5 xl:w-1/4 px-8 py-4 shadow">
-                <form>
-                    <div className="mb-4 mt-2">
-                        <label className="block text-gray-700 text-sm mb-1 font-bold" htmlFor="username">
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="name"
-                            className="appearance-none border rounded w-full py-1 px-3 bg-gray-100 leading-tight"
-                            required
-                            autoFocus />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="email">
-                            Email address
-                        </label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            required />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-1" htmlFor="password"> Password </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            minLength={6}
-                            required />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password-confirmation"> Password confirmation </label>
-                        <input
-                            type="password"
-                            id="password-confirmation"
-                            name="password_confirmation"
-                            required />
-                    </div>
-
-                    <div className="mb-4">
-                        <button className="border rounded p-2 text-white bg-indigo-500 w-full font-bold hover:bg-indigo-500-dark">Register</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <AuthLayout title="Регистрация">
+            <FormGroup>
+                <TextField required id="name" label="Имя" variant="filled" className={clsx(classes.margin)} onChange={handleChange('name')} />
+                <TextField required id="second_name" label="Фамилия" variant="filled" className={clsx(classes.margin)} onChange={handleChange('second_name')} />
+                <TextField required id="patronymic" label="Отчество" variant="filled" className={clsx(classes.margin)} onChange={handleChange('patronymic')} />
+                <TextField required id="phone" label="Телефон" variant="filled" className={clsx(classes.margin)} onChange={handleChange('phone')} />
+                <TextField id="email" label="Email" variant="filled" className={clsx(classes.margin)} onChange={handleChange('email')} />
+                <FormControl className={clsx(classes.margin)} variant="filled">
+                    <InputLabel htmlFor="password">Пароль</InputLabel>
+                    <FilledInput
+                        id="password"
+                        required
+                        type={values.showPassword ? 'text' : 'password'}
+                        value={values.password}
+                        onChange={handleChange('password')}
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="toggle password visibility"
+                                    onClick={handleClickShowPassword}
+                                    onMouseDown={handleMouseDownPassword}
+                                    edge="end"
+                                >
+                                    {values.showPassword ? <Visibility /> : <VisibilityOff />}
+                                </IconButton>
+                            </InputAdornment>
+                        }
+                    />
+                </FormControl>
+                <FormControl className={clsx(classes.margin)} variant="filled">
+                    <InputLabel htmlFor="password_confirmation">Подтверждение пароля</InputLabel>
+                    <FilledInput
+                        id="password_confirmation"
+                        required
+                        type={values.showPassword ? 'text' : 'password'}
+                        value={values.password_confirmation}
+                        onChange={handleChange('password_confirmation')}
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="toggle password visibility"
+                                    onClick={handleClickShowPassword}
+                                    onMouseDown={handleMouseDownPassword}
+                                    edge="end"
+                                >
+                                    {values.showPassword ? <Visibility /> : <VisibilityOff />}
+                                </IconButton>
+                            </InputAdornment>
+                        }
+                    />
+                </FormControl>
+                <Button onClick={handleRegister} variant="contained" color="primary">Зарегистрироваться</Button>
+            </FormGroup>
+        </AuthLayout>
     );
 };
 

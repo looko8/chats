@@ -1,13 +1,19 @@
 import React from 'react';
-import {Link} from "react-router-dom";
-import {Button} from "@material-ui/core";
+import TabMenu from "../layout/TabMenu";
+import AppLayout from "../layout/AppLayout";
+import axios from "axios";
 
-const Welcome = () => {
+const Home = () => {
+
+    /*React.useEffect(() => {
+        axios.get("api/user").then(response => console.log(response));
+    }, []);*/
+
     return (
-        <Button variant="contained" color="primary">
-            Hello World
-        </Button>
+        <AppLayout>
+
+        </AppLayout>
     );
 };
 
-export default Welcome;
+export default Home;

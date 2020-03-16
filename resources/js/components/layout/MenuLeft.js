@@ -16,6 +16,8 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import axios from "axios";
 
 const useStyles = makeStyles({
     list: {
@@ -28,6 +30,10 @@ const useStyles = makeStyles({
 
 export default function MenuLeft(props) {
     const classes = useStyles();
+
+    const handleLogout = () => {
+        axios.post('api/logout').then(response => console.log(response));
+    };
 
     const sideList = () => (
         <ClickAwayListener onClickAway={() => props.setState(false)}>
@@ -43,18 +49,18 @@ export default function MenuLeft(props) {
                             component="img"
                             alt="Contemplative Reptile"
                             height="140"
-                            image="/static/images/cards/contemplative-reptile.jpg"
+                            image="../../../../public/static/test.jpg"
                             title="Contemplative Reptile"
                         />
                         <CardContent>
                             <Typography gutterBottom variant="h5">
-                                Firstname SecondName Patronymic
+                                Firstname Secondname Patronymic
                             </Typography>
                         </CardContent>
                     </CardActionArea>
                     <CardActions>
                         <Button size="small" color="primary">
-                            Edit
+                            Редактировать профиль
                         </Button>
                     </CardActions>
                 </Card>
@@ -62,12 +68,10 @@ export default function MenuLeft(props) {
                 <Divider />
 
                 <List>
-                    {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                        <ListItem button key={text}>
-                            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItem>
-                    ))}
+                    <ListItem onClick={handleLogout}>
+                        <ListItemIcon><ExitToAppIcon /></ListItemIcon>
+                        <ListItemText>Выйти</ListItemText>
+                    </ListItem>
                 </List>
             </div>
         </ClickAwayListener>
