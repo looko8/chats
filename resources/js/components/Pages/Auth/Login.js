@@ -51,7 +51,7 @@ const Login = () => {
     };
 
     const handleLogin = () => {
-        axios.get("/airlock/csrf-cookie").then(response => {
+        axios.get("/sanctum/csrf-cookie").then(response => {
             axios.post("api/login", {
                 phone: values.login,
                 password: values.password

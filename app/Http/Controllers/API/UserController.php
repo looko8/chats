@@ -35,11 +35,19 @@ class UserController extends BaseController
         $credentials = $request->only('phone', 'password');
 
         if (Auth::attempt($credentials)) {
-            // Authentication passed...
-            return response()->json(['message' => 'Login successful'], 200);
+            $user = User::where('phone', $request->phone)->first();
+
+            return $this->sendResponse($user, 'Login successful');
         }
+
+        return $this->sendError("Login error", [], 500);
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws ValidationException
+     */
     public function token(Request $request)
     {
         $request->validate([
@@ -63,7 +71,7 @@ class UserController extends BaseController
             'token' => $token,
         ];
 
-        return response($response, 201);
+        return $this->sendResponse($response, "Create token successful");
     }
 
     /**
