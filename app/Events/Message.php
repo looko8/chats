@@ -15,14 +15,16 @@ class Message implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $message;
+
     /**
      * Create a new event instance.
      *
-     * @return void
+     * @param $message
      */
     public function __construct($message)
     {
         $this->message = $message;
+        $this->dontBroadcastToCurrentUser();
     }
 
     /**

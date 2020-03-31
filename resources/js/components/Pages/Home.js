@@ -1,43 +1,60 @@
 import React from 'react';
-import TabMenu from "../layout/TabMenu";
 import AppLayout from "../layout/AppLayout";
 import axios from "axios";
 
-const Home = () => {
-
-    let messages = [];
-
-    const [values, setValues] = React.useState({
-        message: '',
-    });
-
-    const handleChange = prop => event => {
-        setValues({ ...values, [prop]: event.target.value });
-    };
-
-    const handleSendMessage = () => {
-        axios.post('api/messages', {body: values.message});
-        messages.push(values.message);
-    };
-
-    React.useEffect(() => {
-        window.Echo.channel('chat').listen('Message', ({message}) => {
-            console.log(message);
-            messages.push(message);
-        });
-    }, []);
-
-    return (
-        <AppLayout>
-            <div className="col-sm-12">
-                <textarea className="form-control" rows={10} readOnly>{messages.join('\n')}</textarea>
-                {console.log(messages)}
-                <hr />
-                <input className="form-control" onChange={handleChange('message')}/>
-                <button onClick={handleSendMessage}>Отправить</button>
-            </div>
-        </AppLayout>
-    );
+const ChatWindow = (props) => {
+    return <ul>{props.messages.map((message, index) => {
+        return <li key={index}>{message}</li>
+    })}</ul>
 };
+
+class Home extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            messages: [],
+            message: ''
+        }
+    }
+
+    componentDidMount() {
+        window.Echo.channel('chat').listen('Message', ({message}) => {
+            this.handleSaveMessage(message);
+        });
+    }
+
+    handleChangeMessage(event) {
+        this.setState({
+            message: event.target.value
+        });
+    };
+
+    handleSaveMessage(message) {
+        this.setState({
+            messages: this.state.messages.concat(message)
+        });
+    };
+
+    handleSendMessage() {
+        axios.post('api/messages', {body: this.state.message});
+        this.handleSaveMessage(this.state.message);
+        this.setState({
+            message: ''
+        })
+    };
+
+    render() {
+        return (
+            <AppLayout>
+                <div className="col-sm-12">
+                    <ChatWindow messages={this.state.messages} />
+                    <hr />
+                    <input className="form-control" value={this.state.message} onChange={this.handleChangeMessage.bind(this)}/>
+                    <button onClick={this.handleSendMessage.bind(this)}>Отправить</button>
+                </div>
+            </AppLayout>
+        )
+    }
+}
 
 export default Home;

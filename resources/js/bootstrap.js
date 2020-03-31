@@ -32,7 +32,8 @@ window.axios.defaults.baseURL = 'http://radiance.test';
  * allows your team to easily build robust real-time web applications.
  */
 
-import Echo from 'laravel-echo';
+import Echo from "laravel-echo"
+
 window.io = require('socket.io-client');
 
 window.Echo = new Echo({
