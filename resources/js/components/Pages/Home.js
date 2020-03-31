@@ -18,8 +18,9 @@ class Home extends React.Component {
     }
 
     componentDidMount() {
-        window.Echo.channel('chat').listen('Message', ({message}) => {
-            this.handleSaveMessage(message);
+        window.Echo.private('chat.1').listen('PrivateChat', ({data}) => {
+            console.log(data);
+            this.handleSaveMessage(data.body);
         });
     }
 
@@ -36,7 +37,7 @@ class Home extends React.Component {
     };
 
     handleSendMessage() {
-        axios.post('api/messages', {body: this.state.message});
+        axios.post('api/messages', {body: this.state.message, chat_id: 1});
         this.handleSaveMessage(this.state.message);
         this.setState({
             message: ''

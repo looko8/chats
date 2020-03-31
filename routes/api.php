@@ -23,7 +23,7 @@ Route::post('/register', 'API\UserController@register');
 Route::post('/token', 'API\UserController@token');
 
 Route::post('/messages', function (\Illuminate\Http\Request $request) {
-    App\Events\Message::dispatch($request->input('body'));
+    App\Events\PrivateChat::dispatch($request->all());
 });
 
 Route::middleware('auth:sanctum')->post('/logout', 'API\UserController@logout');
