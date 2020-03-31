@@ -15,6 +15,7 @@ import {
 import {Visibility, VisibilityOff, Person} from '@material-ui/icons';
 import AuthLayout from "../../layout/AuthLayout";
 import axios from "axios";
+import {loggedIn} from "../../../helpers/auth";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -55,7 +56,9 @@ const Login = () => {
             axios.post("api/login", {
                 phone: values.login,
                 password: values.password
-            }).then(response2 => console.log(response2));
+            }).then(response2 => {
+                loggedIn();
+            });
         });
     };
 

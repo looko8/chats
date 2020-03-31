@@ -18,6 +18,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import axios from "axios";
+import {doNotLoggedIn} from "../../helpers/auth";
 
 const useStyles = makeStyles({
     list: {
@@ -32,7 +33,7 @@ export default function MenuLeft(props) {
     const classes = useStyles();
 
     const handleLogout = () => {
-        axios.post('api/logout').then(response => console.log(response));
+        axios.post('api/logout').then(response => doNotLoggedIn());
     };
 
     const sideList = () => (
