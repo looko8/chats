@@ -20,10 +20,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/login', 'API\UserController@login');
 Route::post('/register', 'API\UserController@register');
-Route::post('/token', 'API\UserController@token');
-
-Route::post('/messages', function (\Illuminate\Http\Request $request) {
-    App\Events\PrivateChat::dispatch($request->all());
-});
-
+Route::resource('chats', 'API\ChatController');
 Route::middleware('auth:sanctum')->post('/logout', 'API\UserController@logout');

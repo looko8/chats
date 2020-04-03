@@ -32,6 +32,18 @@ const useStyles = makeStyles({
 export default function MenuLeft(props) {
     const classes = useStyles();
 
+    const [user, setUser] = React.useState({
+        name: '',
+        email: ''
+    });
+
+    React.useEffect(() => {
+        axios.get('api/user').then(response => {
+            console.log(response);
+            setUser({...user, name: response.data.name, email: response.data.email})
+        });
+    }, []);
+
     const handleLogout = () => {
         axios.post('api/logout').then(response => doNotLoggedIn());
     };
@@ -46,16 +58,12 @@ export default function MenuLeft(props) {
             >
                 <Card>
                     <CardActionArea>
-                        <CardMedia
-                            component="img"
-                            alt="Contemplative Reptile"
-                            height="140"
-                            image="../../../../public/static/test.jpg"
-                            title="Contemplative Reptile"
-                        />
                         <CardContent>
                             <Typography gutterBottom variant="h5">
-                                Firstname Secondname Patronymic
+                                {user.name}
+                            </Typography>
+                            <Typography>
+                                {user.email}
                             </Typography>
                         </CardContent>
                     </CardActionArea>

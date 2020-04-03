@@ -60,10 +60,12 @@ export default function AppLayout(props) {
                 </AppBar>
             </Scroll>
             <Toolbar />
+            <Container style={{textAlign: "center"}}>
                 <Box m={1}>
-                <MenuLeft state={state} setState={setState}/>
-                {props.children}
+                    <MenuLeft state={state} setState={setState}/>
+                    {props.children}
                 </Box>
+            </Container>
         </React.Fragment>
     );
 }

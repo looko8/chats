@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from "clsx";
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, withRouter } from 'react-router-dom';
+import { Link, withRouter, useHistory } from 'react-router-dom';
 import {
     InputLabel,
     FilledInput,
@@ -30,8 +30,9 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const Login = () => {
+const Login = (props) => {
     const classes = useStyles();
+    const redirect = {useHistory};
 
     const [values, setValues] = React.useState({
         login: '',
@@ -54,20 +55,20 @@ const Login = () => {
     const handleLogin = () => {
         axios.get("/sanctum/csrf-cookie").then(response => {
             axios.post("api/login", {
-                phone: values.login,
+                email: values.login,
                 password: values.password
             }).then(response2 => {
                 loggedIn();
+                props.history.push('/');
             });
         });
     };
 
     return (
         <AuthLayout title="Авторизация">
-            <Typography>При вводе номера телефона, указывайте его ТОЛЬКО в формате +ХХХХХХХХХХХ</Typography>
             <FormGroup>
                 <FormControl className={clsx(classes.margin)} variant="filled">
-                    <InputLabel htmlFor="login">Телефон</InputLabel>
+                    <InputLabel htmlFor="login">Email</InputLabel>
                     <FilledInput
                         id="login"
                         required
@@ -109,4 +110,4 @@ const Login = () => {
     )
 };
 
-export default Login;
+export default withRouter(Login);

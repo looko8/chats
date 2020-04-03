@@ -17,13 +17,6 @@ class Home extends React.Component {
         }
     }
 
-    componentDidMount() {
-        window.Echo.private('chat.1').listen('PrivateChat', ({data}) => {
-            console.log(data);
-            this.handleSaveMessage(data.body);
-        });
-    }
-
     handleChangeMessage(event) {
         this.setState({
             message: event.target.value

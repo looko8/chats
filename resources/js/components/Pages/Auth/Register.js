@@ -9,7 +9,8 @@ import {
     IconButton,
     FormControl,
     FormGroup,
-    Button
+    Button,
+    FormHelperText
 } from "@material-ui/core";
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
@@ -17,6 +18,7 @@ import {makeStyles} from "@material-ui/core/styles";
 import clsx from "clsx";
 import AuthLayout from "../../layout/AuthLayout";
 import axios from "axios";
+import Alert from '@material-ui/lab/Alert'
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -31,17 +33,20 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const Register = () => {
+const Register = (props) => {
     const classes = useStyles();
     const [values, setValues] = React.useState({
         name: '',
-        second_name: '',
-        patronymic: '',
-        phone: '',
         email: '',
         password: '',
         password_confirmation: '',
         showPassword: false,
+        errors: {
+            message: false,
+            name: false,
+            email: false,
+            password: false
+        }
     });
 
     const handleChange = prop => event => {
@@ -59,24 +64,45 @@ const Register = () => {
     const handleRegister = () => {
         axios.post('api/register', {
             name: values.name,
-            second_name: values.second_name,
-            patronymic: values.patronymic,
-            phone: values.phone,
             email: values.email,
             password: values.password,
             password_confirmation: values.password_confirmation
-        }).then(response => console.log(response));
+        }).then(props.history.push('/login'))
+        .catch(error => {
+            setValues(Object.assign({}, values, {errors: {
+                message: error.response.data.message,
+                name: error.response.data.errors.name,
+                email: error.response.data.errors.email,
+                password: error.response.data.errors.password
+            }}));
+        });
     };
 
     return (
         <AuthLayout title="Регистрация">
+            {values.errors.message && <Alert severity="error">{values.errors.message}</Alert>}
             <FormGroup>
-                <TextField required id="name" label="Имя" variant="filled" className={clsx(classes.margin)} onChange={handleChange('name')} />
-                <TextField required id="second_name" label="Фамилия" variant="filled" className={clsx(classes.margin)} onChange={handleChange('second_name')} />
-                <TextField required id="patronymic" label="Отчество" variant="filled" className={clsx(classes.margin)} onChange={handleChange('patronymic')} />
-                <TextField required id="phone" label="Телефон" variant="filled" className={clsx(classes.margin)} onChange={handleChange('phone')} />
-                <TextField id="email" label="Email" variant="filled" className={clsx(classes.margin)} onChange={handleChange('email')} />
-                <FormControl className={clsx(classes.margin)} variant="filled">
+                <TextField
+                    required
+                    id="name"
+                    label="Имя"
+                    variant="filled"
+                    className={clsx(classes.margin)}
+                    onChange={handleChange('name')}
+                    error={Boolean(values.errors.name)}
+                    helperText={values.errors.name}
+                />
+                <TextField
+                    required
+                    id="email"
+                    label="Email"
+                    variant="filled"
+                    className={clsx(classes.margin)}
+                    onChange={handleChange('email')}
+                    error={Boolean(values.errors.email)}
+                    helperText={values.errors.email}
+                />
+                <FormControl className={clsx(classes.margin)} variant="filled" error={Boolean(values.errors.password)}>
                     <InputLabel htmlFor="password">Пароль</InputLabel>
                     <FilledInput
                         id="password"
@@ -96,9 +122,11 @@ const Register = () => {
                                 </IconButton>
                             </InputAdornment>
                         }
+                        aria-describedby="password"
                     />
+                    <FormHelperText>{values.errors.password}</FormHelperText>
                 </FormControl>
-                <FormControl className={clsx(classes.margin)} variant="filled">
+                <FormControl className={clsx(classes.margin)} variant="filled" error={Boolean(values.errors.password)}>
                     <InputLabel htmlFor="password_confirmation">Подтверждение пароля</InputLabel>
                     <FilledInput
                         id="password_confirmation"
@@ -118,7 +146,9 @@ const Register = () => {
                                 </IconButton>
                             </InputAdornment>
                         }
+                        aria-describedby="password"
                     />
+                    <FormHelperText>{values.errors.password}</FormHelperText>
                 </FormControl>
                 <Button onClick={handleRegister} variant="contained" color="primary">Зарегистрироваться</Button>
             </FormGroup>
@@ -126,4 +156,4 @@ const Register = () => {
     );
 };
 
-export default Register;
+export default withRouter(Register);

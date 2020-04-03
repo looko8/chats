@@ -32,46 +32,15 @@ class UserController extends BaseController
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('phone', 'password');
+        $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            $user = User::where('phone', $request->phone)->first();
+            $user = User::where('email', $request->email)->first();
 
             return $this->sendResponse($user, 'Login successful');
         }
 
         return $this->sendError("Login error", [], 500);
-    }
-
-    /**
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     * @throws ValidationException
-     */
-    public function token(Request $request)
-    {
-        $request->validate([
-            'phone' => 'required',
-            'password' => 'required',
-            'device_name' => 'required'
-        ]);
-
-        $user = User::where('phone', $request->phone)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $token = $user->createToken($request->device_name)->plainTextToken;
-
-        $response = [
-            'user' => $user,
-            'token' => $token,
-        ];
-
-        return $this->sendResponse($response, "Create token successful");
     }
 
     /**
@@ -93,9 +62,6 @@ class UserController extends BaseController
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'second_name' => ['required', 'string', 'max:255'],
-            'patronymic' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'regex:/^\+[0-9-]{9,20}$/'],
             'email' => ['string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:4', 'confirmed'],
         ]);
@@ -109,9 +75,6 @@ class UserController extends BaseController
     {
         return User::create([
             'name' => $data['name'],
-            'second_name' => $data['second_name'],
-            'patronymic' => $data['patronymic'],
-            'phone' => $data['phone'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
