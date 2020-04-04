@@ -14,11 +14,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 Route::post('/login', 'API\UserController@login');
 Route::post('/register', 'API\UserController@register');
-Route::resource('chats', 'API\ChatController');
-Route::middleware('auth:sanctum')->post('/logout', 'API\UserController@logout');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::resource('chats', 'API\ChatController');
+    Route::resource('chats.messages', 'API\MessageController');
+    Route::post('/logout', 'API\UserController@logout');
+});
