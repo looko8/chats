@@ -3,13 +3,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from "./router/App";
 import {Provider} from 'react-redux';
-import store from "./store";
+import config from "./store";
+import { PersistGate } from 'redux-persist/es/integration/react'
 
-console.log(store.getState());
-store.dispatch({type: "FETCH_CHAT_LIST_REQUEST"});
 ReactDOM.render(
-    <Provider store={store}>
-        <App />
+    <Provider store={config.store}>
+        <PersistGate loading={null} persistor={config.persistor}>
+            <App />
+        </PersistGate>
     </Provider>,
     document.getElementById('app')
 );

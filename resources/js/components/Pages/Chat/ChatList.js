@@ -8,70 +8,75 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Avatar from "@material-ui/core/Avatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import Grid from "@material-ui/core/Grid";
-import Chip from "@material-ui/core/Chip";
-import {Divider} from "@material-ui/core";
 import {Link} from "react-router-dom";
+import {connect} from 'react-redux';
+import {getErrors, getList, getLoading} from "../../../store/selectors/chats";
+import {fetchChatListRequest} from "../../../store/chats";
+import {CircularProgress} from "@material-ui/core";
+import Backdrop from "@material-ui/core/Backdrop";
+import Alert from "@material-ui/lab/Alert";
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-        flexGrow: 1,
-    },
-    demo: {
-        backgroundColor: theme.palette.background.paper,
-    },
     link: {
         textDecoration: 'none',
         color: 'unset'
     }
 }));
 
-const ChatList = () => {
+const ChatList = (props) => {
     const classes = useStyles();
-    const [list, setList] = React.useState([]);
 
     React.useEffect(() => {
-        axios.get("api/chats").then(response => {
-            setList(response.data.data);
-        });
+        props.fetchChatList();
     }, []);
 
     return (
         <AppLayout>
-            <Grid item>
-                <div className={classes.demo}>
-                    <List>
-                        {list.map((item,index) => {
-                            return (
-                                <>
-                                    <Link to={`/chats/${item.id}`} className={classes.link}>
-                                        <ListItem key={index}>
-                                            <ListItemAvatar>
-                                                <Avatar src={"/storage/" + item.image} />
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary={item.title}
-                                                secondary="message"
-                                            />
-                                            <ListItemSecondaryAction>
-                                                <ListItemText
-                                                    primary={"31.08.1997"}
-                                                    secondary={
-                                                        <Chip color="primary" size="small" label={'1'} />
-                                                    }
-                                                />
-                                            </ListItemSecondaryAction>
-                                        </ListItem>
-                                    </Link>
-                                    <Divider />
-                                </>
-                            )
-                        })}
-                    </List>
-                </div>
-            </Grid>
+            {props.loading &&
+            <Backdrop open={props.loading}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+            }
+            {props.errors && <Alert severity="error">{props.errors.message}</Alert>}
+            <List>
+                {props.list.map((item,index) => {
+                    return (
+                        <Link to={`/chats/${item.id}`} className={classes.link} key={index}>
+                            <ListItem divider key={index}>
+                                <ListItemAvatar>
+                                    <Avatar src={"/storage/" + item.image} />
+                                </ListItemAvatar>
+                                <ListItemText
+                                    primary={item.title}
+                                    secondary="message"
+                                />
+                                <ListItemSecondaryAction>
+                                    <ListItemText
+                                        primary={"31.08.1997"}
+                                        secondary={
+                                            <span>10</span>
+                                        }
+                                    />
+                                </ListItemSecondaryAction>
+                            </ListItem>
+                        </Link>
+                    )
+                })}
+            </List>
         </AppLayout>
     );
 };
 
-export default ChatList;
+const mapStateToProps = (state) => {
+    return {
+        loading: getLoading(state),
+        errors: getErrors(state),
+        list: getList(state)
+    }
+};
+
+const mapDispatchToProps =  {
+    fetchChatList: fetchChatListRequest
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChatList);

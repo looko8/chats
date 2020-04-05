@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-    Container,
     TextField,
     InputLabel,
     FilledInput,
@@ -15,10 +14,11 @@ import {
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import {makeStyles} from "@material-ui/core/styles";
-import clsx from "clsx";
 import AuthLayout from "../../layout/AuthLayout";
-import axios from "axios";
 import Alert from '@material-ui/lab/Alert'
+import {getErrors, getLoading, userIsRegistered} from "../../../store/selectors/auth";
+import {registerRequest} from "../../../store/auth";
+import {connect} from 'react-redux';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -41,12 +41,6 @@ const Register = (props) => {
         password: '',
         password_confirmation: '',
         showPassword: false,
-        errors: {
-            message: false,
-            name: false,
-            email: false,
-            password: false
-        }
     });
 
     const handleChange = prop => event => {
@@ -62,48 +56,45 @@ const Register = (props) => {
     };
 
     const handleRegister = () => {
-        axios.post('api/register', {
+        const data = {
             name: values.name,
             email: values.email,
             password: values.password,
             password_confirmation: values.password_confirmation
-        }).then(props.history.push('/login'))
-        .catch(error => {
-            setValues(Object.assign({}, values, {errors: {
-                message: error.response.data.message,
-                name: error.response.data.errors.name,
-                email: error.response.data.errors.email,
-                password: error.response.data.errors.password
-            }}));
-        });
+        };
+        props.register(data);
     };
+
+    React.useEffect(() => {
+        props.registered && props.history.push('/login');
+    },[props.registered]);
 
     return (
         <AuthLayout title="Регистрация">
-            {values.errors.message && <Alert severity="error">{values.errors.message}</Alert>}
+            {props.errors.message && <Alert severity="error">{props.errors.message}</Alert>}
             <FormGroup>
                 <TextField
                     required
                     id="name"
-                    label="Имя"
+                    label="Name"
                     variant="filled"
-                    className={clsx(classes.margin)}
+                    className={classes.margin}
                     onChange={handleChange('name')}
-                    error={Boolean(values.errors.name)}
-                    helperText={values.errors.name}
+                    error={Boolean(props.errors.name)}
+                    helperText={props.errors.name}
                 />
                 <TextField
                     required
                     id="email"
                     label="Email"
                     variant="filled"
-                    className={clsx(classes.margin)}
+                    className={classes.margin}
                     onChange={handleChange('email')}
-                    error={Boolean(values.errors.email)}
-                    helperText={values.errors.email}
+                    error={Boolean(props.errors.email)}
+                    helperText={props.errors.email}
                 />
-                <FormControl className={clsx(classes.margin)} variant="filled" error={Boolean(values.errors.password)}>
-                    <InputLabel htmlFor="password">Пароль</InputLabel>
+                <FormControl className={classes.margin} variant="filled" error={Boolean(props.errors.password)}>
+                    <InputLabel htmlFor="password">Password</InputLabel>
                     <FilledInput
                         id="password"
                         required
@@ -124,10 +115,10 @@ const Register = (props) => {
                         }
                         aria-describedby="password"
                     />
-                    <FormHelperText>{values.errors.password}</FormHelperText>
+                    <FormHelperText>{props.errors.password}</FormHelperText>
                 </FormControl>
-                <FormControl className={clsx(classes.margin)} variant="filled" error={Boolean(values.errors.password)}>
-                    <InputLabel htmlFor="password_confirmation">Подтверждение пароля</InputLabel>
+                <FormControl className={classes.margin} variant="filled" error={Boolean(props.errors.password)}>
+                    <InputLabel htmlFor="password_confirmation">Password confirm</InputLabel>
                     <FilledInput
                         id="password_confirmation"
                         required
@@ -148,12 +139,25 @@ const Register = (props) => {
                         }
                         aria-describedby="password"
                     />
-                    <FormHelperText>{values.errors.password}</FormHelperText>
+                    <FormHelperText>{props.errors.password}</FormHelperText>
                 </FormControl>
-                <Button onClick={handleRegister} variant="contained" color="primary">Зарегистрироваться</Button>
+                <Button onClick={handleRegister} variant="contained" color="primary">Register</Button>
+                <Link to="/login">Login</Link>
             </FormGroup>
         </AuthLayout>
     );
 };
 
-export default withRouter(Register);
+const mapStateToProps = (state) => {
+    return {
+        loading: getLoading(state),
+        errors: getErrors(state),
+        registered: userIsRegistered(state),
+    }
+};
+
+const mapDispatchToProps = {
+    register: registerRequest
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Register);

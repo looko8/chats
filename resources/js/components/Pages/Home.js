@@ -1,54 +1,29 @@
 import React from 'react';
 import AppLayout from "../layout/AppLayout";
-import axios from "axios";
+import {connect} from 'react-redux';
+import {getUser} from "../../store/selectors/auth";
+import {Typography, List, ListItem} from "@material-ui/core";
 
-const ChatWindow = (props) => {
-    return <ul>{props.messages.map((message, index) => {
-        return <li key={index}>{message}</li>
-    })}</ul>
+const Home = (props) => {
+    return (
+        <AppLayout>
+            <div className="col-sm-12">
+                <Typography variant="h6">Welcome to app, {props.user.name}</Typography>
+                <Typography variant="h6">Your info:</Typography>
+                <List>
+                    <ListItem>Id: {props.user.id}</ListItem>
+                    <ListItem>Email: {props.user.email}</ListItem>
+                    <ListItem>Created at: {props.user.created_at}</ListItem>
+                </List>
+            </div>
+        </AppLayout>
+    );
 };
 
-class Home extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            messages: [],
-            message: ''
-        }
+const mapStateToProps = (state) => {
+    return {
+        user: getUser(state)
     }
+};
 
-    handleChangeMessage(event) {
-        this.setState({
-            message: event.target.value
-        });
-    };
-
-    handleSaveMessage(message) {
-        this.setState({
-            messages: this.state.messages.concat(message)
-        });
-    };
-
-    handleSendMessage() {
-        axios.post('api/messages', {body: this.state.message, chat_id: 1});
-        this.handleSaveMessage(this.state.message);
-        this.setState({
-            message: ''
-        })
-    };
-
-    render() {
-        return (
-            <AppLayout>
-                <div className="col-sm-12">
-                    <ChatWindow messages={this.state.messages} />
-                    <hr />
-                    <input className="form-control" value={this.state.message} onChange={this.handleChangeMessage.bind(this)}/>
-                    <button onClick={this.handleSendMessage.bind(this)}>Отправить</button>
-                </div>
-            </AppLayout>
-        )
-    }
-}
-
-export default Home;
+export default connect(mapStateToProps)(Home);

@@ -1,16 +1,15 @@
 import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
-import {isLoggedIn} from "../helpers/auth";
+import {getStatus} from "../store/selectors/auth";
+import {connect} from "react-redux";
 
-function AuthRoute ({ component: Component, title, ...rest }) {
-
-    let authenticated = isLoggedIn();
+function AuthRoute ({ component: Component, isLoggedIn, ...rest }) {
 
     return (
         <Route
             {...rest}
             render={props => {
-                return authenticated
+                return isLoggedIn
                     ?
                         <Component {...props} />
                     :
@@ -21,4 +20,10 @@ function AuthRoute ({ component: Component, title, ...rest }) {
     );
 }
 
-export default AuthRoute;
+const mapStateToProps = (state) => {
+    return {
+        isLoggedIn: getStatus(state)
+    }
+};
+
+export default connect(mapStateToProps)(AuthRoute);

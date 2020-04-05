@@ -1,7 +1,6 @@
 import React from 'react';
-import clsx from "clsx";
 import { makeStyles } from '@material-ui/core/styles';
-import { Link, withRouter, useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
     InputLabel,
     FilledInput,
@@ -9,13 +8,16 @@ import {
     IconButton,
     FormGroup,
     FormControl,
-    Typography,
-    Button
+    Button,
+    CircularProgress
 } from "@material-ui/core";
 import {Visibility, VisibilityOff, Person} from '@material-ui/icons';
 import AuthLayout from "../../layout/AuthLayout";
-import axios from "axios";
-import {loggedIn} from "../../../helpers/auth";
+import {connect} from 'react-redux';
+import {loginRequest} from "../../../store/auth";
+import {getStatus, getErrors, getLoading} from "../../../store/selectors/auth";
+import Alert from "@material-ui/lab/Alert";
+import Backdrop from "@material-ui/core/Backdrop";
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -32,7 +34,6 @@ const useStyles = makeStyles(theme => ({
 
 const Login = (props) => {
     const classes = useStyles();
-    const redirect = {useHistory};
 
     const [values, setValues] = React.useState({
         login: '',
@@ -53,21 +54,23 @@ const Login = (props) => {
     };
 
     const handleLogin = () => {
-        axios.get("/sanctum/csrf-cookie").then(response => {
-            axios.post("api/login", {
-                email: values.login,
-                password: values.password
-            }).then(response2 => {
-                loggedIn();
-                props.history.push('/');
-            });
-        });
+        const data = {
+            email: values.login,
+            password: values.password
+        };
+        props.login(data);
     };
 
     return (
         <AuthLayout title="Авторизация">
+            {props.loading &&
+            <Backdrop open={props.loading}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+            }
+            {props.errors.message && <Alert severity="error">{props.errors.message}</Alert>}
             <FormGroup>
-                <FormControl className={clsx(classes.margin)} variant="filled">
+                <FormControl className={classes.margin} variant="filled">
                     <InputLabel htmlFor="login">Email</InputLabel>
                     <FilledInput
                         id="login"
@@ -80,8 +83,8 @@ const Login = (props) => {
                         }
                     />
                 </FormControl>
-                <FormControl className={clsx(classes.margin)} variant="filled">
-                    <InputLabel htmlFor="password">Пароль</InputLabel>
+                <FormControl className={classes.margin} variant="filled">
+                    <InputLabel htmlFor="password">Password</InputLabel>
                     <FilledInput
                         id="password"
                         required
@@ -102,12 +105,23 @@ const Login = (props) => {
                         }
                     />
                 </FormControl>
-                <Button variant="contained" color="primary" onClick={handleLogin}>Войти</Button>
-                <Link to="fogrot-password">Забыли пароль?</Link>
-                <Link to="register">Зарегестрироваться</Link>
+                <Button variant="contained" color="primary" onClick={handleLogin}>Login</Button>
+                <Link to="/register">Register</Link>
             </FormGroup>
         </AuthLayout>
     )
 };
 
-export default withRouter(Login);
+const mapDispatchToProps = {
+    login: loginRequest
+};
+
+const mapStateToProps = (state) => {
+    return {
+        loading: getLoading(state),
+        errors: getErrors(state),
+        isLoggedIn: getStatus(state)
+    }
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login);

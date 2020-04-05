@@ -1,15 +1,15 @@
 import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
-import {isLoggedIn} from "../helpers/auth";
+import {getStatus} from "../store/selectors/auth";
+import {connect} from "react-redux";
 
-function GuestRoute ({ component: Component, title, ...rest }) {
+function GuestRoute ({ component: Component, isLoggedIn, ...rest }) {
 
-    let authenticated = isLoggedIn();
 
     return (
         <Route
             {...rest}
-            render={props => authenticated
+            render={props => isLoggedIn
                 ? <Redirect to={{ pathname: '/home', state: { from: props.location } }} />
                 : <Component {...props} />
             }
@@ -17,5 +17,10 @@ function GuestRoute ({ component: Component, title, ...rest }) {
     );
 }
 
+const mapStateToProps = (state) => {
+    return {
+        isLoggedIn: getStatus(state)
+    }
+};
 
-export default GuestRoute;
+export default connect(mapStateToProps)(GuestRoute);

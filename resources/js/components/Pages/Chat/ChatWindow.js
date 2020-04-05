@@ -7,10 +7,10 @@ import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import { red } from '@material-ui/core/colors';
-import axios from "axios";
-
-import MoreVertIcon from '@material-ui/icons/MoreVert';import {useParams} from "react-router-dom"
+import {connect} from "react-redux";
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 import AppLayout from "../../layout/AppLayout";
+import {getChat} from "../../../store/selectors/chats";
 
 const useStyles = makeStyles((theme) => ({
     media: {
@@ -24,28 +24,20 @@ const useStyles = makeStyles((theme) => ({
 
 const ChatWindow = (props) => {
     const classes = useStyles();
-    const {id} = useParams();
-    const [info, setInfo] = React.useState({});
-
-    React.useEffect(() => {
-        axios.get(`api/chats/${id}`).then(response => {
-            setInfo(response.data.data);
-        });
-    }, []);
-
+    console.log(props.chat);
     return (
         <AppLayout>
             <Card className={classes.root}>
                 <CardHeader
                     avatar={
-                        <Avatar aria-label="recipe" className={classes.avatar} src={"/storage/" + info.image} />
+                        <Avatar aria-label="recipe" className={classes.avatar} src={"/storage/" + props.chat.image} />
                     }
                     action={
                         <IconButton aria-label="settings">
                             <MoreVertIcon />
                         </IconButton>
                     }
-                    title={info.title}
+                    title={props.chat.title}
                 />
                 <CardContent>
                     <Typography variant="body2" color="textSecondary" component="p">
@@ -58,4 +50,10 @@ const ChatWindow = (props) => {
     )
 };
 
-export default ChatWindow;
+const mapStateToProps = (state, {match: {params: {id}}}) => {
+    return {
+        chat: getChat(state, id),
+    }
+};
+
+export default connect(mapStateToProps)(ChatWindow);
