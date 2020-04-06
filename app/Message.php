@@ -9,4 +9,9 @@ class Message extends Model
     protected $fillable = [
         'chat_id', 'user_id', 'text', 'reply_message_id'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo('App\User');
+    }
 }

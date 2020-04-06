@@ -28,4 +28,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password'
     ];
+
+    public function chats()
+    {
+        return $this->belongsToMany('App\Chat', 'user_chats');
+    }
 }

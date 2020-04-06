@@ -21,7 +21,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    Route::get('chats/subscribed', 'API\ChatController@subscribedChats')->name('chats.subscribed');
+    Route::post('chats/subscribe', 'API\ChatController@subscribe')->name('chats.subscribe');
+    Route::post('chats/unsubscribe', 'API\ChatController@unsubscribe')->name('chats.unsubscribe');
     Route::resource('chats', 'API\ChatController');
     Route::resource('chats.messages', 'API\MessageController');
     Route::post('/logout', 'API\UserController@logout');
 });
+

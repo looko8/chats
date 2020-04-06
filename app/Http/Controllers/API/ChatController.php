@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Http\Request;
 use App\Chat;
+use App\User;
 use App\Http\Resources\Chat as ChatResource;
+use Illuminate\Support\Facades\Auth;
 
 class ChatController extends BaseController
 {
@@ -17,7 +19,11 @@ class ChatController extends BaseController
     public function index()
     {
         $chatList = Chat::all();
-        return $this->sendResponse(ChatResource::collection($chatList), 'Chat list returned successful');
+        $data = [
+            'subscribed' => ChatResource::collection($this->getSubscribedChats()),
+            'unsubscribed' => ChatResource::collection($this->getUnsubscribedChats())
+        ];
+        return $this->sendResponse($data, 'Chat list returned successful');
     }
 
     /**
@@ -70,5 +76,42 @@ class ChatController extends BaseController
     public function destroy($id)
     {
         //
+    }
+
+    public function subscribedChats()
+    {
+        $subscribedChats = $this->getSubscribedChats();
+        return $this->sendResponse(ChatResource::collection($subscribedChats), 'Subscribed chat list returned successful');
+    }
+
+    public function unsubscribedChats()
+    {
+        $unsubscribedChats = $this->getUnsubscribedChats();
+        return $this->sendResponse(ChatResource::collection($unsubscribedChats), 'Unsubscribed chat list returned successful');
+    }
+
+    public function subscribe(Request $request)
+    {
+        $chat = Chat::find($request->chat_id);
+        $chat->users()->attach($request->user_id);
+        return $this->sendResponse([], 'User subscribed to chat successfully');
+    }
+
+    public function unsubscribe(Request $request)
+    {
+        $chat = Chat::find($request->chat_id);
+        $chat->users()->detach($request->user_id);
+        return $this->sendResponse([], 'User unsubscribed to chat successfully');
+    }
+
+    private function getSubscribedChats()
+    {
+        return User::find(Auth::id())->chats;
+    }
+
+    private function getUnsubscribedChats()
+    {
+        $subscribedChats = $this->getSubscribedChats();
+        return Chat::whereNotIn('id', $subscribedChats->pluck('id')->toArray())->get();
     }
 }

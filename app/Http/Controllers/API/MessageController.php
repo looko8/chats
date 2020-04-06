@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Message;
 use App\Http\Resources\Message as MessageResource;
+use App\Events\Message as MessageEvent;
 
 
 class MessageController extends BaseController
@@ -38,7 +39,19 @@ class MessageController extends BaseController
             'reply_message_id' => $request->reply_message_id
         ]);
 
-        return $this->sendResponse(new MessageResource($message), "Message created successful");
+        $user = Message::find($message->id)->user;
+        $data = [
+            'message_id' => $message->id,
+            'chat_id' => $message->chat_id,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'message_text' => $message->text,
+            'reply_message_id' => $message->reply_message_id
+        ];
+
+        event(new MessageEvent($data));
+
+        return $this->sendResponse($data, "Message created successful");
     }
 
     /**
