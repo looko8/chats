@@ -22,6 +22,7 @@ export const getUnsubscribedChats = (state) => {
     return state.chats.list.unsubscribed;
 };
 
-export const getUnsubscribedChat = (state, id) => {
-    return state.chats.list.unsubscribed.filter(chat => Number(chat.id) === Number(id))[0];
+export const getMessages = (state) => {
+    return state.chats.messages;
 };
+

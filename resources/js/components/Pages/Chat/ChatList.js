@@ -1,7 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import AppLayout from "../../layout/AppLayout";
-import axios from "axios";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
@@ -61,7 +60,7 @@ const ChatList = (props) => {
             {props.errors && <Alert severity="error">{props.errors.message}</Alert>}
             <div className={classes.root}>
                 <Grid container spacing={2}>
-                    {props.subscribed.length > 0 &&
+                    {props.subscribed && props.subscribed.length > 0 &&
                         <Grid item xs>
                             <Typography variant="h6" className={classes.title}>
                                 Subscribed chats
@@ -93,7 +92,7 @@ const ChatList = (props) => {
                             </List>
                         </Grid>
                     }
-                    {props.unsubscribed.length > 0 &&
+                    {props.unsubscribed && props.unsubscribed.length > 0 &&
                         <Grid item xs>
                             <Typography variant="h6" className={classes.title}>
                                 Unsubscribed chats

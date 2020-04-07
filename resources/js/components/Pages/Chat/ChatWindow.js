@@ -10,10 +10,10 @@ import { red } from '@material-ui/core/colors';
 import {connect} from "react-redux";
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import AppLayout from "../../layout/AppLayout";
-import {getChat} from "../../../store/selectors/chats";
+import {getChat, getErrors, getLoading, getMessages} from "../../../store/selectors/chats";
 import Button from "@material-ui/core/Button";
 import SendIcon from '@material-ui/icons/Send';
-import {TextField, FormControl} from "@material-ui/core";
+import {TextField, FormControl, CircularProgress} from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -21,6 +21,10 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Divider from "@material-ui/core/Divider";
 import ListItemText from "@material-ui/core/ListItemText";
 import CardActions from "@material-ui/core/CardActions";
+import {getUser} from "../../../store/selectors/auth";
+import {saveMessage, sendMessageRequest} from "../../../store/chats";
+import Backdrop from "@material-ui/core/Backdrop";
+import Alert from "@material-ui/lab/Alert";
 
 const useStyles = makeStyles((theme) => ({
     inline: {
@@ -33,8 +37,39 @@ const useStyles = makeStyles((theme) => ({
 
 const ChatWindow = (props) => {
     const classes = useStyles();
+    const [values, setValues] = React.useState({
+        message: ''
+    });
+
+    const handleChange = prop => event => {
+        setValues({ ...values, [prop]: event.target.value });
+    };
+
+    const handleSendMessage = () => {
+        const data = {
+            chat_id: props.chat.id,
+            user_id: props.user.id,
+            text: values.message,
+            reply_message_id: null
+        };
+        setValues({...values, message: ''});
+        props.send(data);
+    };
+
+    React.useEffect(() => {
+        props.chat && window.Echo.private(`chat.${props.chat.id}`).listen('Message', ({data}) => {
+            props.save(data);
+        })
+    }, []);
+
     return (
         <AppLayout>
+            {props.loading &&
+            <Backdrop open={props.loading}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+            }
+            {props.errors && <Alert severity="error">{props.errors.message}</Alert>}
             {props.chat &&
             <Card className={classes.root}>
                 <CardHeader
@@ -51,78 +86,42 @@ const ChatWindow = (props) => {
                 <CardContent>
                     <Container>
                         <List className={classes.root}>
-                            <ListItem alignItems="flex-start">
-                                <ListItemAvatar>
-                                    <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary="Brunch this weekend?"
-                                    secondary={
-                                        <React.Fragment>
-                                            <Typography
-                                                component="span"
-                                                variant="body2"
-                                                className={classes.inline}
-                                                color="textPrimary"
-                                            >
-                                                Ali Connors
-                                            </Typography>
-                                            {" — 31.08.1997 20:30"}
-                                        </React.Fragment>
-                                    }
-                                />
-                            </ListItem>
-                            <Divider variant="inset" component="li" />
-                            <ListItem alignItems="flex-start">
-                                <ListItemAvatar>
-                                    <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary="Summer BBQ"
-                                    secondary={
-                                        <React.Fragment>
-                                            <Typography
-                                                component="span"
-                                                variant="body2"
-                                                className={classes.inline}
-                                                color="textPrimary"
-                                            >
-                                                to Scott, Alex, Jennifer
-                                            </Typography>
-                                            {" — Wish I could come, but I'm out of town this…"}
-                                        </React.Fragment>
-                                    }
-                                />
-                            </ListItem>
-                            <Divider variant="inset" component="li" />
-                            <ListItem alignItems="flex-start">
-                                <ListItemAvatar>
-                                    <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary="Oui Oui"
-                                    secondary={
-                                        <React.Fragment>
-                                            <Typography
-                                                component="span"
-                                                variant="body2"
-                                                className={classes.inline}
-                                                color="textPrimary"
-                                            >
-                                                Sandra Adams
-                                            </Typography>
-                                            {' — Do you have Paris recommendations? Have you ever…'}
-                                        </React.Fragment>
-                                    }
-                                />
-                            </ListItem>
+                            {props.messages && props.messages.length > 0 &&
+                                props.messages.map((item, index) => {
+                                    return (
+                                        <ListItem alignItems="flex-start" divider key={index}>
+                                            <ListItemAvatar>
+                                                <Avatar alt={item.user_name} src="/static/images/avatar/1.jpg" />
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={item.message_text}
+                                                secondary={
+                                                    <React.Fragment>
+                                                        <Typography
+                                                            component="span"
+                                                            variant="body2"
+                                                            className={classes.inline}
+                                                            color="textPrimary"
+                                                        >
+                                                            {item.user_name}
+                                                        </Typography>
+                                                        {` — 31.08.1997 20:30`}
+                                                    </React.Fragment>
+                                                }
+                                            />
+                                        </ListItem>
+                                    )
+                                })
+                            }
                         </List>
                         <CardActions>
                             <FormControl fullWidth>
                                 <TextField
                                     id="standard-textarea"
                                     placeholder="Enter your message"
+                                    value={values.message}
                                     multiline
+                                    onChange={handleChange('message')}
                                 />
                             </FormControl>
                             <Button
@@ -130,6 +129,7 @@ const ChatWindow = (props) => {
                                 color="primary"
                                 className={classes.button}
                                 endIcon={<SendIcon />}
+                                onClick={handleSendMessage}
                             >
                                 Send
                             </Button>
@@ -144,8 +144,17 @@ const ChatWindow = (props) => {
 
 const mapStateToProps = (state, {match: {params: {id}}}) => {
     return {
+        loading: getLoading(state),
+        errors: getErrors(state),
         chat: getChat(state, id),
+        user: getUser(state),
+        messages: getMessages(state)
     }
 };
 
-export default connect(mapStateToProps)(ChatWindow);
+const mapDispatchToProps = {
+    send: sendMessageRequest,
+    save: saveMessage
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChatWindow);

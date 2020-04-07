@@ -1,8 +1,7 @@
 import {call, put, takeLatest} from 'redux-saga/effects';
 import {persistReducer} from "redux-persist";
 import storage from 'redux-persist/lib/storage'
-import {fetchChatList as apiFetchChatList, subscribe as apiSubscribeToChat} from "../requests/chats";
-import {getUnsubscribedChat, getUnsubscribedChats} from "./selectors/chats";
+import {fetchChatList as apiFetchChatList, subscribe as apiSubscribeToChat, sendMessage as apiSendMessage} from "../requests/chats";
 
 const FETCH_CHAT_LIST_REQUEST = 'my-app/chats/FETCH_CHAT_LIST_REQUEST';
 const FETCH_CHAT_LIST_SUCCESS = 'my-app/chats/FETCH_CHAT_LIST_SUCCESS';
@@ -12,14 +11,21 @@ const SUBSCRIBE_TO_CHAT_REQUEST = 'my-app/chats/SUBSCRIBE_TO_CHAT_REQUEST';
 const SUBSCRIBE_TO_CHAT_SUCCESS = 'my-app/chats/SUBSCRIBE_TO_CHAT_SUCCESS';
 const SUBSCRIBE_TO_CHAT_FAILED = 'my-app/chats/SUBSCRIBE_TO_CHAT_FAILED';
 
+const SEND_MESSAGE_REQUEST = 'my-app/chats/SEND_MESSAGE_REQUEST';
+const SEND_MESSAGE_SUCCESS = 'my-app/chats/SEND_MESSAGE_SUCCESS';
+const SEND_MESSAGE_FAILED = 'my-app/chats/SEND_MESSAGE_FAILED';
+
+const SAVE_MESSAGE_FROM_EVENT = 'my-app/chats/SAVE_MESSAGE_FROM_EVENT';
+
 const initialState = {
-    list: [],
+    list: {},
+    messages: [],
     loading: false,
     error: false
 };
 
 export default persistReducer(
-    {key: 'chats', storage, blacklist: ['loading', 'errors']},
+    {key: 'chats', storage, blacklist: ['loading', 'errors', 'messages']},
     function(state = initialState, action) {
     switch (action.type) {
         case FETCH_CHAT_LIST_REQUEST:
@@ -48,21 +54,53 @@ export default persistReducer(
                 error: false
             };
         case SUBSCRIBE_TO_CHAT_SUCCESS:
-            const unsubscribedChat = getUnsubscribedChat(state, action.data.chat_id);
-            //let subscribedChats = Object.assign(state.list.subscribed);
-            //subscribedChats.push(unsubscribedChat);
-            //console.log(subscribedChats);
-            return state;
-            /*const unsubscribedChat = getUnsubscribedChat(action.data.chat_id);
-            let subscribedChats = Object.assign({}, state);
-            subscribedChats.push(unsubscribedChat);
-            const unsubscribedChats = getUnsubscribedChats(state).filter(chat => Number(chat.id) !== Number(action.data.chat_id));
-            return Object.assign({}, state, {loading: false}, {error: false}, {subscribed: {subscribedChats}}, {unsubscribed: {unsubscribedChats}});*/
+            const unsubscribedChat = state.list.unsubscribed.filter(chat => Number(chat.id) === Number(action.data.chat_id))[0];
+            const newUnsubscribedChats = state.list.unsubscribed.filter(chat => Number(chat.id) !== Number(action.data.chat_id));
+            return Object.assign({}, state, {
+                list: {
+                    ...state.list,
+                    subscribed: [
+                        ...state.list.subscribed,
+                        unsubscribedChat
+                    ],
+                    unsubscribed: newUnsubscribedChats
+                }
+            }, {loading: false, error: false});
         case SUBSCRIBE_TO_CHAT_FAILED:
             return {
                 ...state,
                 loading: false,
                 error: action.errors
+            };
+        case SEND_MESSAGE_REQUEST:
+            return {
+                ...state,
+                loading: true,
+                error: false
+            };
+        case SEND_MESSAGE_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                error: false,
+                messages: [
+                    ...state.messages,
+                    action.data
+                ]
+            };
+        case SEND_MESSAGE_FAILED:
+            return {
+                ...state,
+                loading: false,
+                error: action.errors
+            };
+        case SAVE_MESSAGE_FROM_EVENT:
+            return {
+                ...state,
+                messages: [
+                    ...state.messages,
+                    action.data
+                ]
             };
         default:
             return state;
@@ -98,6 +136,26 @@ const subscribeToChatFailed = (errors) => ({
     errors
 });
 
+export const sendMessageRequest = (data) => ({
+    type: SEND_MESSAGE_REQUEST,
+    data
+});
+
+const sendMessageSuccess = (data) => ({
+    type: SEND_MESSAGE_SUCCESS,
+    data
+});
+
+const sendMessageFailed = (errors) => ({
+    type: SEND_MESSAGE_FAILED,
+    errors
+});
+
+export const saveMessage = (data) => ({
+    type: SAVE_MESSAGE_FROM_EVENT,
+    data
+});
+
 
 function* fetchChatList() {
     try {
@@ -110,16 +168,26 @@ function* fetchChatList() {
 
 function* subscribeToChat(action) {
     try {
-        yield call(apiSubscribeToChat, action.data);
+        const {data: {data}} = yield call(apiSubscribeToChat, action.data);
         yield put(subscribeToChatSuccess(action.data));
     } catch ({response}) {
-        yield put(subscribeToChatFailed(response.data))
+        yield put(subscribeToChatFailed(response.data));
+    }
+}
+
+function* sendMessage(action) {
+    try {
+        const {data: {data}} = yield call(apiSendMessage, action.data);
+        yield put(sendMessageSuccess(data))
+    } catch ({response}) {
+        yield put(sendMessageFailed(response.data));
     }
 }
 
 export function* root() {
     yield takeLatest(FETCH_CHAT_LIST_REQUEST, fetchChatList);
     yield takeLatest(SUBSCRIBE_TO_CHAT_REQUEST, subscribeToChat);
+    yield takeLatest(SEND_MESSAGE_REQUEST, sendMessage);
 }
 
 

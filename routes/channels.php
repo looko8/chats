@@ -18,5 +18,5 @@ use Illuminate\Support\Facades\Broadcast;
 });*/
 
 Broadcast::channel('chat.{chat_id}', function ($user, $chat_id) {
-    return true;
+    return $user->chats->contains($chat_id);
 });
