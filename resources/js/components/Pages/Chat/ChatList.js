@@ -75,11 +75,11 @@ const ChatList = (props) => {
                                                 </ListItemAvatar>
                                                 <ListItemText
                                                     primary={item.title}
-                                                    secondary="message"
+                                                    secondary={ item.last_message ? `${item.last_message.user.name}: ${item.last_message.text}`: `В данном чате пока нет сообщений`}
                                                 />
                                                 <ListItemSecondaryAction>
                                                     <ListItemText
-                                                        primary={"31.08.1997"}
+                                                        primary={item.last_message && new Date(item.last_message.created_at).toLocaleString()}
                                                         secondary={
                                                             <span>10</span>
                                                         }

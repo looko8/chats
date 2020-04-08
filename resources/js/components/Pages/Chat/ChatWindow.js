@@ -56,6 +56,7 @@ const ChatWindow = (props) => {
         props.send(data);
     };
 
+    /*TODO если вернутся к списку чатов и снова зайти обратно в чат, то коннект к сокету будет повторным и один пользователь будет считаться как два разных и сообщение будет дублироваться*/
     React.useEffect(() => {
         props.chat && window.Echo.private(`chat.${props.chat.id}`).listen('Message', ({data}) => {
             props.save(data);

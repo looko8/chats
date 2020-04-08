@@ -21,37 +21,37 @@ const initialState = {
     list: {},
     messages: [],
     loading: false,
-    error: false
+    errors: false
 };
 
 export default persistReducer(
-    {key: 'chats', storage, blacklist: ['loading', 'errors', 'messages']},
+    {key: 'chats', storage, blacklist: ['loading', 'errors']},
     function(state = initialState, action) {
     switch (action.type) {
         case FETCH_CHAT_LIST_REQUEST:
             return {
                 ...state,
                 loading: true,
-                error: false
+                errors: false
             };
         case FETCH_CHAT_LIST_SUCCESS:
             return {
                 ...state,
                 list: action.chats,
                 loading: false,
-                error: false
+                errors: false
             };
         case FETCH_CHAT_LIST_FAILED:
             return {
                 ...state,
                 loading: false,
-                error: action.errors
+                errors: action.errors
             };
         case SUBSCRIBE_TO_CHAT_REQUEST:
             return {
                 ...state,
                 loading: true,
-                error: false
+                errors: false
             };
         case SUBSCRIBE_TO_CHAT_SUCCESS:
             const unsubscribedChat = state.list.unsubscribed.filter(chat => Number(chat.id) === Number(action.data.chat_id))[0];
@@ -65,24 +65,24 @@ export default persistReducer(
                     ],
                     unsubscribed: newUnsubscribedChats
                 }
-            }, {loading: false, error: false});
+            }, {loading: false, errors: false});
         case SUBSCRIBE_TO_CHAT_FAILED:
             return {
                 ...state,
                 loading: false,
-                error: action.errors
+                errors: action.errors
             };
         case SEND_MESSAGE_REQUEST:
             return {
                 ...state,
                 loading: true,
-                error: false
+                errors: false
             };
         case SEND_MESSAGE_SUCCESS:
             return {
                 ...state,
                 loading: false,
-                error: false,
+                errors: false,
                 messages: [
                     ...state.messages,
                     action.data
@@ -92,7 +92,7 @@ export default persistReducer(
             return {
                 ...state,
                 loading: false,
-                error: action.errors
+                errors: action.errors
             };
         case SAVE_MESSAGE_FROM_EVENT:
             return {

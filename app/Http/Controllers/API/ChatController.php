@@ -20,9 +20,10 @@ class ChatController extends BaseController
     {
         $chatList = Chat::all();
         $data = [
-            'subscribed' => ChatResource::collection($this->getSubscribedChats()),
-            'unsubscribed' => ChatResource::collection($this->getUnsubscribedChats())
+            'subscribed' => $this->getSubscribedChats(),
+            'unsubscribed' => $this->getUnsubscribedChats()
         ];
+
         return $this->sendResponse($data, 'Chat list returned successful');
     }
 
@@ -78,18 +79,6 @@ class ChatController extends BaseController
         //
     }
 
-    public function subscribedChats()
-    {
-        $subscribedChats = $this->getSubscribedChats();
-        return $this->sendResponse(ChatResource::collection($subscribedChats), 'Subscribed chat list returned successful');
-    }
-
-    public function unsubscribedChats()
-    {
-        $unsubscribedChats = $this->getUnsubscribedChats();
-        return $this->sendResponse(ChatResource::collection($unsubscribedChats), 'Unsubscribed chat list returned successful');
-    }
-
     public function subscribe(Request $request)
     {
         $chat = Chat::find($request->chat_id);
@@ -106,12 +95,13 @@ class ChatController extends BaseController
 
     private function getSubscribedChats()
     {
-        return User::find(Auth::id())->chats;
+        return User::find(Auth::id())->chats->load('lastMessage.user');
     }
 
     private function getUnsubscribedChats()
     {
         $subscribedChats = $this->getSubscribedChats();
-        return Chat::whereNotIn('id', $subscribedChats->pluck('id')->toArray())->get();
+        $unsubscribedChats = Chat::whereNotIn('id', $subscribedChats->pluck('id')->toArray())->get();
+        return $unsubscribedChats->load('lastMessage');
     }
 }
