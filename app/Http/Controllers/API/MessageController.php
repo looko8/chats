@@ -20,8 +20,9 @@ class MessageController extends BaseController
      */
     public function index($id)
     {
-        $messages = Message::where('chat_id', $id)->paginate(10);
-        return $this->sendResponse($messages, "messages for chat with id = {$id}");
+        $messages = Message::where('chat_id', $id)->latest()->paginate(10);
+        $messages->load('user');
+        return $this->sendResponse($messages, "Messages for chat with id = {$id} load successful");
     }
 
     /**
@@ -39,19 +40,12 @@ class MessageController extends BaseController
             'reply_message_id' => $request->reply_message_id
         ]);
 
-        $user = Message::find($message->id)->user;
-        $data = [
-            'message_id' => $message->id,
-            'chat_id' => $message->chat_id,
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'message_text' => $message->text,
-            'reply_message_id' => $message->reply_message_id
-        ];
+        $message = Message::find($message->id);
+        $message->load('user');
 
-        event(new MessageEvent($data));
+        event(new MessageEvent($message));
 
-        return $this->sendResponse($data, "Message created successful");
+        return $this->sendResponse($message, "Message created successful");
     }
 
     /**

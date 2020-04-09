@@ -23,6 +23,14 @@ export const getUnsubscribedChats = (state) => {
 };
 
 export const getMessages = (state) => {
-    return state.chats.messages;
+    return state.chats.messages.data;
+};
+
+export const getCurrentPage = (state) => {
+    return state.chats.messages.current_page
+};
+
+export const getLastPage = (state) => {
+    return state.chats.messages.last_page
 };
 

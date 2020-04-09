@@ -25,11 +25,9 @@ import {getUser} from "../../../store/selectors/auth";
 import {saveMessage, sendMessageRequest} from "../../../store/chats";
 import Backdrop from "@material-ui/core/Backdrop";
 import Alert from "@material-ui/lab/Alert";
+import MessageList from "./MessageList";
 
 const useStyles = makeStyles((theme) => ({
-    inline: {
-        display: 'inline',
-    },
     avatar: {
         backgroundColor: red[500],
     },
@@ -56,12 +54,15 @@ const ChatWindow = (props) => {
         props.send(data);
     };
 
-    /*TODO если вернутся к списку чатов и снова зайти обратно в чат, то коннект к сокету будет повторным и один пользователь будет считаться как два разных и сообщение будет дублироваться*/
     React.useEffect(() => {
         props.chat && window.Echo.private(`chat.${props.chat.id}`).listen('Message', ({data}) => {
             props.save(data);
-        })
-    }, []);
+        });
+
+        return () => {
+            window.Echo.leave(`chat.${props.chat.id}`);
+        }
+    });
 
     return (
         <AppLayout>
@@ -86,35 +87,7 @@ const ChatWindow = (props) => {
                 />
                 <CardContent>
                     <Container>
-                        <List className={classes.root}>
-                            {props.messages && props.messages.length > 0 &&
-                                props.messages.map((item, index) => {
-                                    return (
-                                        <ListItem alignItems="flex-start" divider key={index}>
-                                            <ListItemAvatar>
-                                                <Avatar alt={item.user_name} src="/static/images/avatar/1.jpg" />
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary={item.message_text}
-                                                secondary={
-                                                    <React.Fragment>
-                                                        <Typography
-                                                            component="span"
-                                                            variant="body2"
-                                                            className={classes.inline}
-                                                            color="textPrimary"
-                                                        >
-                                                            {item.user_name}
-                                                        </Typography>
-                                                        {` — 31.08.1997 20:30`}
-                                                    </React.Fragment>
-                                                }
-                                            />
-                                        </ListItem>
-                                    )
-                                })
-                            }
-                        </List>
+                        <MessageList chatId={props.chat.id} />
                         <CardActions>
                             <FormControl fullWidth>
                                 <TextField
