@@ -9,7 +9,8 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -32,5 +33,10 @@ class User extends Authenticatable
     public function chats()
     {
         return $this->belongsToMany('App\Chat', 'user_chats');
+    }
+
+    public function newMessages()
+    {
+
     }
 }

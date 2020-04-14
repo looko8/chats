@@ -16,6 +16,7 @@ const SEND_MESSAGE_SUCCESS = 'my-app/chats/SEND_MESSAGE_SUCCESS';
 const SEND_MESSAGE_FAILED = 'my-app/chats/SEND_MESSAGE_FAILED';
 
 const SAVE_MESSAGE_FROM_EVENT = 'my-app/chats/SAVE_MESSAGE_FROM_EVENT';
+const UPDATE_LAST_MESSAGE_FROM_NOTIFICATION = 'my-app/chats/UPDATE_LAST_MESSAGE_FROM_NOTIFICATION';
 
 const FETCH_MESSAGE_LIST_REQUEST = 'my-app/chats/FETCH_MESSAGE_LIST_REQUEST';
 const FETCH_MESSAGE_LIST_SUCCESS = 'my-app/chats/FETCH_MESSAGE_LIST_SUCCESS';
@@ -137,6 +138,20 @@ export default persistReducer(
                 loading: false,
                 errors: action.errors,
             };
+        case UPDATE_LAST_MESSAGE_FROM_NOTIFICATION:
+            const list = state.list.subscribed;
+            list.map(chat => {
+                if(Number(chat.id) === Number(action.data.chat_id)) {
+                    chat.last_message = action.data;
+                }
+            });
+            return {
+                ...state,
+                list: {
+                    ...state.list,
+                    subscribed: list
+                }
+            };
         default:
             return state;
     }
@@ -205,6 +220,11 @@ const fetchMessageListSuccess = (data) => ({
 const fetchMessageListFailed = (errors) => ({
     type: FETCH_CHAT_LIST_FAILED,
     errors
+});
+
+export const updateLastMessageFromEvent = (data) => ({
+    type: UPDATE_LAST_MESSAGE_FROM_NOTIFICATION,
+    data
 });
 
 function* fetchChatList() {

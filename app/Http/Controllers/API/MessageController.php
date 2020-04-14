@@ -7,7 +7,10 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Message;
 use App\Http\Resources\Message as MessageResource;
+use Illuminate\Support\Facades\Notification;
 use App\Events\Message as MessageEvent;
+use App\Notifications\NewMessage;
+use App\Chat;
 
 
 class MessageController extends BaseController
@@ -43,8 +46,21 @@ class MessageController extends BaseController
         $message = Message::find($message->id);
         $message->load('user');
 
-        event(new MessageEvent($message));
+        $chat = Chat::find($message->chat_id);
+        $users = $chat->users;
+        $notification = [
+            'id' => $message->id,
+            'chat_id' => $message->chat_id,
+            'user_id' => $message->user_id,
+            'text' => $message->text,
+            'reply_message_id' => $message->reply_message_id,
+            'created_at' => $message->created_at,
+            'updated_at' => $message->updated_at,
+            'user' => $message->user
+        ];
 
+        event(new MessageEvent($message));
+        Notification::send($users, new NewMessage($notification));
         return $this->sendResponse($message, "Message created successful");
     }
 

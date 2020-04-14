@@ -10,7 +10,7 @@ import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import {Link} from "react-router-dom";
 import {connect} from 'react-redux';
 import {getErrors, getList, getLoading, getSubscribedChats, getUnsubscribedChats} from "../../../store/selectors/chats";
-import {fetchChatListRequest, subscribeToChatRequest} from "../../../store/chats";
+import {fetchChatListRequest, subscribeToChatRequest, updateLastMessageFromEvent} from "../../../store/chats";
 import {CircularProgress} from "@material-ui/core";
 import Backdrop from "@material-ui/core/Backdrop";
 import Alert from "@material-ui/lab/Alert";
@@ -18,6 +18,7 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import AddIcon from '@material-ui/icons/Add';
+import {getUser} from "../../../store/selectors/auth";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -37,7 +38,6 @@ const useStyles = makeStyles((theme) => ({
 
 const ChatList = (props) => {
     const classes = useStyles();
-
     React.useEffect(() => {
         props.fetchChatList();
     }, []);
@@ -49,6 +49,15 @@ const ChatList = (props) => {
         };
         props.subscribe(data);
     };
+
+    React.useEffect(() => {
+        window.Echo.private(`App.User.${props.user.id}`).notification((notification) => {
+            props.updateLastMessage(notification);
+        });
+        return () => {
+            window.Echo.leave(`App.User.${props.user.id}`);
+        }
+    });
 
     return (
         <AppLayout>
@@ -79,10 +88,7 @@ const ChatList = (props) => {
                                                 />
                                                 <ListItemSecondaryAction>
                                                     <ListItemText
-                                                        primary={item.last_message && new Date(item.last_message.created_at).toLocaleString()}
-                                                        secondary={
-                                                            <span>10</span>
-                                                        }
+                                                        secondary={item.last_message && new Date(item.last_message.created_at).toLocaleString()}
                                                     />
                                                 </ListItemSecondaryAction>
                                             </ListItem>
@@ -131,13 +137,14 @@ const mapStateToProps = (state) => {
         errors: getErrors(state),
         subscribed: getSubscribedChats(state),
         unsubscribed: getUnsubscribedChats(state),
-        user: state.auth.user
+        user: getUser(state),
     }
 };
 
 const mapDispatchToProps =  {
     fetchChatList: fetchChatListRequest,
     subscribe: subscribeToChatRequest,
+    updateLastMessage: updateLastMessageFromEvent
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChatList);

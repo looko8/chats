@@ -17,6 +17,11 @@ class Chat extends Model
         return $this->belongsToMany('App\User', 'user_chats');
     }
 
+    public function newMessages()
+    {
+
+    }
+
     public function lastMessage()
     {
         return $this->hasOne('App\Message')->latest();
