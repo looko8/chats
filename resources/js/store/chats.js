@@ -139,19 +139,29 @@ export default persistReducer(
                 errors: action.errors,
             };
         case UPDATE_LAST_MESSAGE_FROM_NOTIFICATION:
-            const list = state.list.subscribed;
-            list.map(chat => {
-                if(Number(chat.id) === Number(action.data.chat_id)) {
-                    chat.last_message = action.data;
-                }
+            const {message_id, chat_id, user_id, text, reply_message_id, created_at, updated_at, user} = action.data;
+            return Object.assign({}, state, {
+                list: Object.assign({}, state.list, {
+                    subscribed: state.list.subscribed.map(chat => {
+                        if(chat.id === action.data.chat_id) {
+                            return Object.assign({}, chat, {
+                                last_message: {
+                                    id: message_id,
+                                    chat_id: chat_id,
+                                    user_id: user_id,
+                                    text: text,
+                                    reply_message_id: reply_message_id,
+                                    created_at: created_at,
+                                    updated_at: updated_at,
+                                    user: user
+                                }
+
+                            })
+                        }
+                        return chat;
+                    })
+                })
             });
-            return {
-                ...state,
-                list: {
-                    ...state.list,
-                    subscribed: list
-                }
-            };
         default:
             return state;
     }
@@ -239,7 +249,7 @@ function* fetchChatList() {
 function* subscribeToChat(action) {
     try {
         const {data: {data}} = yield call(apiSubscribeToChat, action.data);
-        yield put(subscribeToChatSuccess(data));
+        yield put(subscribeToChatSuccess(action.data));
     } catch ({response}) {
         yield put(subscribeToChatFailed(response.data));
     }

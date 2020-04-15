@@ -102,6 +102,6 @@ class ChatController extends BaseController
     {
         $subscribedChats = $this->getSubscribedChats();
         $unsubscribedChats = Chat::whereNotIn('id', $subscribedChats->pluck('id')->toArray())->get();
-        return $unsubscribedChats->load('lastMessage');
+        return $unsubscribedChats->load('lastMessage.user');
     }
 }

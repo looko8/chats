@@ -49,7 +49,7 @@ class MessageController extends BaseController
         $chat = Chat::find($message->chat_id);
         $users = $chat->users;
         $notification = [
-            'id' => $message->id,
+            'message_id' => $message->id,
             'chat_id' => $message->chat_id,
             'user_id' => $message->user_id,
             'text' => $message->text,
